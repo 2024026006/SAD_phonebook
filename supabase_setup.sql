@@ -7,7 +7,11 @@ create table contacts (
   created_at timestamptz default now()
 );
 
--- 2. RLS 활성화 및 공개 접근 허용 (로그인 불필요)
+-- 2. anon / authenticated 롤에 권한 부여
+grant all on table contacts to anon;
+grant all on table contacts to authenticated;
+
+-- 3. RLS 활성화 및 공개 접근 허용 (로그인 불필요)
 alter table contacts enable row level security;
 
 create policy "public access"
