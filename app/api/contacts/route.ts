@@ -1,5 +1,10 @@
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export async function GET() {
   try {
@@ -9,13 +14,20 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('[GET /api/contacts]', error)
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
     }
-    return NextResponse.json(data)
-  } catch (e) {
-    console.error('[GET /api/contacts] unexpected', e)
-    return NextResponse.json({ error: String(e) }, { status: 500 })
+
+    return NextResponse.json(data ?? [])
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -25,7 +37,10 @@ export async function POST(request: Request) {
     const { name, phone, memo } = body
 
     if (!name || !phone) {
-      return NextResponse.json({ error: '이름과 전화번호는 필수입니다.' }, { status: 400 })
+      return NextResponse.json(
+        { error: '이름과 전화번호는 필수입니다.' },
+        { status: 400 }
+      )
     }
 
     const { data, error } = await supabase
@@ -35,12 +50,19 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('[POST /api/contacts]', error)
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
     }
+
     return NextResponse.json(data, { status: 201 })
-  } catch (e) {
-    console.error('[POST /api/contacts] unexpected', e)
-    return NextResponse.json({ error: String(e) }, { status: 500 })
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }
